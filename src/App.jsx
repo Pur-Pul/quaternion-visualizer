@@ -2,7 +2,7 @@ import React from 'react'
 import { useEffect, useState } from 'react';
 import { Routes, Route, BrowserRouter } from 'react-router-dom'
 import Quaternion from './utils/Quaternion';
-import QuatList from './components/quatList';
+import QuatList from './components/QuatList';
 import Quat from './components/Quat';
 import dataService from './services/data';
 
