@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const fs = require('fs')
 const Table = require('./utils/Table')
+const PORT = process.env.PORT || 3000; 
 
 app.use(express.static('dist'))
 app.use(cors())
@@ -34,6 +35,6 @@ app.get('/api/:index', async (req, res) => {
 	}
 })
 
-app.listen(3000, () => {
-	console.log(`Server running on port ${3000}`)
+app.listen(PORT, () => {
+	console.log(`Server running on port ${PORT}`)
 })
