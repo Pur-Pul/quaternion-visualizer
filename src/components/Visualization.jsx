@@ -7,12 +7,21 @@ import Polygon from '../utils/Polygon';
 const Visualization = ({ vertices }) => {
     const unit_sphere = new Sphere(3)
     const [cam, setCam] = useState(new Vector3(0, 2, 0))
-    let polygons = []
-    vertices.forEach((vertex, index) => {
-      if (index > 0 && vertex.selected && vertices[index-1].selected) {
-        polygons.push(new Polygon(0, index-1, index))
-      }
-    })
+    const [polygons, setPolygons] = useState([])
+    const [polVerts, setPolVerts] = useState([])
+    useEffect(() => {
+      const polygons = []
+      const polVerts = [vertices[0], vertices[1]]
+      vertices.forEach((vertex) => {
+        if (vertex.selected) {
+          polVerts.push(vertex)
+          polygons.push(new Polygon(0, 1, polVerts.length-1))
+        }
+        setPolygons(polygons)
+        setPolVerts(polVerts)
+        
+      })}, [vertices]
+    )
     return (
         <Plot 
           data={[
@@ -32,27 +41,39 @@ const Visualization = ({ vertices }) => {
             },
             {
               type: "mesh3d",
-              x: vertices.map((vertex) => vertex.x),
-              y: vertices.map((vertex) => vertex.y),
-              z: vertices.map((vertex) => vertex.z),
+              x: polVerts.map((vertex) => vertex.x),
+              y: polVerts.map((vertex) => vertex.y),
+              z: polVerts.map((vertex) => vertex.z),
               i: polygons.map((polygon) => polygon.v1),
               j: polygons.map((polygon) => polygon.v2),
               k: polygons.map((polygon) => polygon.v3),
               opacity: 0.5,
+              color: 'rgb(255, 132, 0)'
             },
             {
               type: 'scatter3d',
               mode: 'lines',
-              x: vertices.slice(1,vertices.length).map((vertex) => vertex.x),
-              y: vertices.slice(1,vertices.length).map((vertex) => vertex.y),
-              z: vertices.slice(1,vertices.length).map((vertex) => vertex.z),
+              x: vertices.slice(2,vertices.length).map((vertex) => vertex.x),
+              y: vertices.slice(2,vertices.length).map((vertex) => vertex.y),
+              z: vertices.slice(2,vertices.length).map((vertex) => vertex.z),
               opacity: 0.5,
               line: {
                 width: 10,
                 color: 'rgb(255,0,0)',
               },
-              
-            }
+            },
+            {
+              type: 'scatter3d',
+              mode: 'lines',
+              x: polVerts.slice(1, polVerts.length).map((vertex) => vertex.x),
+              y: polVerts.slice(1, polVerts.length).map((vertex) => vertex.y),
+              z: polVerts.slice(1, polVerts.length).map((vertex) => vertex.z),
+              opacity: 0.5,
+              line: {
+                width: 10,
+                color: 'rgb(0,255,0)',
+              },
+            },
           ]
         }
         layout = {{

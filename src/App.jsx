@@ -5,26 +5,26 @@ import Quaternion from './utils/Quaternion';
 import QuatList from './components/QuatList';
 import Quat from './components/Quat';
 import dataService from './services/data';
+import Visualization from './components/Visualization';
 
 const App = () => {
-  const [data, setData] = useState([])
-  const [range, setRange] = useState([0,0])
+  const [vertices, setVertices] = useState([])
+  const [quats, setQuats] = useState([])
 
   useEffect(() => {
-    const loadData = async () => {
+    const loadQuats = async () => {
       const data = await dataService.getAll()
-      setData(data)
+      setQuats(data.map((quat) => new Quaternion(quat.w, quat.x, quat.y, quat.z)))
     }
-    loadData()
+    loadQuats()
   }, [])
-
-  const quats = data.map((quat) => new Quaternion(quat.w, quat.x, quat.y, quat.z))
 
   return (
     <BrowserRouter>
+      <Visualization vertices={vertices} />
       <Routes>
-        <Route path="/" element={<QuatList quaternions={quats}/>} />
-        <Route path="quaternion/:index" element={<Quat />} />
+        <Route path="/" element={<QuatList quaternions={quats} setVertices={setVertices}/>} />
+        <Route path="quaternion/:index" element={<Quat setVertices={setVertices}/>} />
       </Routes>
     </BrowserRouter>
   );

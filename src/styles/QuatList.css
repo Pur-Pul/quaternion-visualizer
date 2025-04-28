@@ -1,0 +1,27 @@
+table, td, th {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+table {
+    width: 206;
+    border-spacing: 0;
+}
+thead, tbody { display: block; }
+tbody {
+    height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+tbody td, thead th {
+    width: 50px;
+}
+thead th:last-child {
+    width: 156px;
+}
+#quaternion {
+    width: 140px;
+    cursor: pointer;
+}
+#quaternion:hover {
+    background-color: rgb(255, 132, 0)
+}

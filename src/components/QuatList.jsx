@@ -1,13 +1,12 @@
 import QuaternionView from "./QuaternionView";
 import Vector3 from "../utils/Vector3";
-import Polygon from "../utils/Polygon";
-import Visualization from "./Visualization";
 import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
 import { useState, useEffect } from "react";
-import { Link, useNavigate} from "react-router-dom";
+import { useNavigate} from "react-router-dom";
+import '../styles/QuatList.css'
 
-const QuatList = ({ quaternions }) => {
+const QuatList = ({ quaternions, setVertices }) => {
     const [range, setRange] = useState([0,1000])
     const [dataStop, setDataStop] = useState(1000)
     const [dataStart, setDataStart] = useState(0)
@@ -16,55 +15,54 @@ const QuatList = ({ quaternions }) => {
 
     useEffect(() => {
         setRange([Math.max(range[0], dataStart), Math.min(range[1], dataStop)])
-      
     }, [dataStart, dataStop])
 
     const quats = quaternions.slice(range[0], range[1])
-
-    const origin = new Vector3(0,0,1);
-    let vertices = [ new Vector3(0,0,0) ];
-    quats.forEach((quat, index) => {
-        const new_vertex = quat.rotate(origin)
-        vertices.push(new_vertex)
-    });
-
+    const reference = new Vector3(0,0,1);
+    const origin = new Vector3(0,0,0);
     useEffect(() => {
-        document.body.addEventListener('click', (event) => {
-            const index = event.target.getAttribute("index")
-            setSelected(index)
-            
+        const vertices = [ origin, reference ];
+        quats.forEach((quat, index) => {
+            let new_vertex = quat.rotate(reference)
+            new_vertex.selected = range[0]+index == selected
+            vertices.push(new_vertex)
         });
-    }, []);
-
-    useEffect(() => {
-        console.log(vertices)
-        if (selected && selected > 0) { 
-            vertices[selected-1].selected = true
-            vertices[selected].selected = true
-        }
-    }, [selected])
-
+        setVertices(vertices)
+    }, [quaternions, range, selected])
     console.log(selected)
+    const quatHoverHandler = (event) => {
+        const index = event.target.getAttribute("index")
+        setSelected(index)
+    }
 
     return (
         <div>
-            <Visualization vertices={vertices} />
             <input type="number" value={dataStart} onChange={(e) => setDataStart(Math.max(0, e.target.value))}/>
             <input type="number" value={dataStop} onChange={(e) => setDataStop(Math.max(0, e.target.value))}/>
             <RangeSlider defaultValue={range} min={dataStart} max={dataStop} onInput={(val) => setRange(val)}/>
-            <h2>Quaternions</h2>
-            <ol start={range[0]}>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Index</th>
+                        <th>Quaternion</th>
+                    </tr>
+                </thead>
+                <tbody>
                 {quats.map((quaternion, index) => {
                     return(
-                        <li key={range[0]+index}>
-
-                                <QuaternionView onClick={()=>console.log('click')} quaternion={quaternion} index={range[0]+index}/>
-                                <button onClick={() => navigate(`/quaternion/${range[0]+index}`)}>Open</button>
-            
-                        </li>
+                        <tr key={range[0]+index}>
+                            <td>
+                                {range[0]+index}
+                            </td>
+                            <td id="quaternion" onMouseOver={quatHoverHandler} onClick={() => navigate(`/quaternion/${range[0]+index}`)}>
+                                <QuaternionView quaternion={quaternion} index={range[0]+index}/>
+                            </td>
+                        </tr>
                     )
                 })}
-            </ol>
+                </tbody>
+            </table>
+            
         </div>
     );
 };
