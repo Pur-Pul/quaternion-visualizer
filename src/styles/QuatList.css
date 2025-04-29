@@ -3,7 +3,7 @@ table, td, th {
     border-collapse: collapse;
 }
 table {
-    width: 206;
+    width: 266;
     border-spacing: 0;
 }
 thead, tbody { display: block; }
@@ -16,12 +16,21 @@ tbody td, thead th {
     width: 50px;
 }
 thead th:last-child {
-    width: 156px;
+    width: 216px;
 }
 #quaternion {
-    width: 140px;
+    width: 200px;
     cursor: pointer;
 }
 #quaternion:hover {
     background-color: rgb(255, 132, 0)
+}
+#list_container {
+    display: flex;
+}
+#range_selector {
+    display: flex;
+}
+.range {
+    width: 50px;
 }

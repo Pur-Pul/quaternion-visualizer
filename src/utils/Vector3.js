@@ -32,6 +32,17 @@ class Vector3 {
 	lerpn = function(vector, t) {
 		return this.lerp(vector, t).normalize(this.norm())
 	}
+    cross = function(vector) {
+        return new Vector3(
+            this.y * vector.z - this.z * vector.y,
+            this.z * vector.x - this.x * vector.z,
+            this.x * vector.y - this.y * vector.x
+        )
+    }
+    angle = function(vector) {
+		const rad = Math.acos(this.dot(vector) / (this.norm() * vector.norm()))
+        return rad * 180 / Math.PI;
+	}
 }
 
 export default Vector3;

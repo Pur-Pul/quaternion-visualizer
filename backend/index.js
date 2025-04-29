@@ -35,6 +35,32 @@ app.get('/api/:index', async (req, res) => {
 	}
 })
 
+app.post('/api', async (req, res) => {
+	let quat = undefined
+	const index = req.body.index
+	try {
+		quat = {
+			w:req.body.quaternion.w,
+			x:req.body.quaternion.x,
+			y:req.body.quaternion.y,
+			z:req.body.quaternion.z
+		}
+	} catch {
+		return res.status(400).statusMessage("Malformed quaternion.")
+	}
+	console.log(quat)
+	console.log(index)
+	if (index == -1) {
+		quats.push(quat)
+		return res.json(quats[quats.length-1])
+	} else if (index > -1 && index < quats.length) {
+		quats.splice(req.body.index, 0, quat)
+		return res.json(quats[req.body.index])
+	} else {
+		return res.status(400).statusMessage("Index out of range.")
+	}
+})
+
 app.listen(PORT, () => {
 	console.log(`Server running on port ${PORT}`)
 })

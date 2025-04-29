@@ -6,10 +6,13 @@ import QuatList from './components/QuatList';
 import Quat from './components/Quat';
 import dataService from './services/data';
 import Visualization from './components/Visualization';
+import Vector3 from './utils/Vector3';
 
 const App = () => {
   const [vertices, setVertices] = useState([])
   const [quats, setQuats] = useState([])
+  const [point, setPoint] = useState(new Vector3(0,0,1))
+  const [selection, setSelection] = useState(false)
 
   useEffect(() => {
     const loadQuats = async () => {
@@ -21,9 +24,9 @@ const App = () => {
 
   return (
     <BrowserRouter>
-      <Visualization vertices={vertices} />
+      <Visualization vertices={vertices} point={point} setPoint={setPoint} selection={selection}/>
       <Routes>
-        <Route path="/" element={<QuatList quaternions={quats} setVertices={setVertices}/>} />
+        <Route path="/" element={<QuatList quaternions={quats} setVertices={setVertices} point={point} setPoint={setPoint} selection={selection} setSelection={setSelection}/>} />
         <Route path="quaternion/:index" element={<Quat setVertices={setVertices}/>} />
       </Routes>
     </BrowserRouter>
