@@ -11,9 +11,10 @@ const getOne = async (index) => {
 	return response.data
 }
 
-const post = async (quaternion, index) => {
-	const response = await axios.post(`${baseUrl}`, {quaternion, index})
+const post = async (quats, index) => {
+	const response = await axios.post(`${baseUrl}`, {quats, index})
 	return response.data
 }
+
 
 export default { getAll, getOne, post }

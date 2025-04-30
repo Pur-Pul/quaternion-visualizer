@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Polygon from '../utils/Polygon';
 import React from 'react';
 import Vector3 from '../utils/Vector3';
+import Quaternion from '../utils/Quaternion';
 
 class PersistPlot extends React.Component {
   constructor(props) {
@@ -20,13 +21,20 @@ class PersistPlot extends React.Component {
         config={this.state.config}
         onInitialized={(figure) => {this.setState(figure)}}
         onUpdate={(figure) => {this.setState(figure)}}
-        onClick={(e) => this.props.setPoint ? this.props.setPoint(new Vector3(e.points[0].x, e.points[0].y, e.points[0].z)) : undefined}
+        onClick={(e) => {
+          if (this.props.setNewQuat) {
+            const point = new Vector3(e.points[0].x, e.points[0].y, e.points[0].z)
+            const axis = this.props.reference.cross(point).normalize()
+            const angle = point.angle(this.props.reference)
+            this.props.setNewQuat(Quaternion.axisAngle(axis, angle))
+          }
+        }}
       />
     );
   }
 }
 
-const Visualization = ({ vertices, point, setPoint, selection}) => {
+const Visualization = ({ vertices, selection, slerpN, newQuat, setNewQuat, reference, newRef}) => {
     const unit_sphere = new Sphere(3)
     const [polygons, setPolygons] = useState([])
     const [polVerts, setPolVerts] = useState([])
@@ -43,6 +51,12 @@ const Visualization = ({ vertices, point, setPoint, selection}) => {
         
       })}, [vertices]
     )
+    const new_vertices = [newRef ? newRef : reference];
+    for (var i = 0; i < slerpN; i++) {
+      const slerpQuat = new Quaternion(1,0,0,0).slerp(newQuat, (i+1)/(slerpN+1))
+      new_vertices.push(slerpQuat.rotate(new_vertices[0]))
+    }
+    new_vertices.push(newQuat.rotate(new_vertices[0]))
     const sphere_data = {
       type: "mesh3d",
       x: unit_sphere.sphere_vertices.map((vertex) => vertex.x),
@@ -96,15 +110,14 @@ const Visualization = ({ vertices, point, setPoint, selection}) => {
     }
     
     var data = [sphere_data, sector_data, chained_arc_data, direct_arc_data]
-    if (point) {
-      const reference = new Vector3(0,0,1);
+    if (new_vertices.length > 1) {
       const new_arc_data = {
-        x: [reference.x, point.x],
-        y: [reference.y, point.y],
-        z: [reference.z, point.z],
+        x: new_vertices.map((vertex) => vertex.x),
+        y: new_vertices.map((vertex) => vertex.y),
+        z: new_vertices.map((vertex) => vertex.z),
         type: 'scatter3d',
         mode: 'lines',
-        name: 'new quaternion',
+        name: 'new rotation',
         opacity: 0.5,
         line: {
           width: 10,
@@ -138,7 +151,8 @@ const Visualization = ({ vertices, point, setPoint, selection}) => {
             },
             uirevision: "true"
           }}
-          setPoint={selection ? setPoint : undefined}
+          setNewQuat={selection ? setNewQuat : undefined}
+          reference={new_vertices[0]}
         />
       );
 };

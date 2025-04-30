@@ -36,28 +36,46 @@ app.get('/api/:index', async (req, res) => {
 })
 
 app.post('/api', async (req, res) => {
-	let quat = undefined
+	const newQuats = []
 	const index = req.body.index
+	console.log(req.body.quats)
 	try {
-		quat = {
-			w:req.body.quaternion.w,
-			x:req.body.quaternion.x,
-			y:req.body.quaternion.y,
-			z:req.body.quaternion.z
-		}
+		req.body.quats.forEach((quat) => {
+			newQuats.push(
+				{
+					w:quat.w,
+					x:quat.x,
+					y:quat.y,
+					z:quat.z
+				}
+			)
+		})
 	} catch {
-		return res.status(400).statusMessage("Malformed quaternion.")
+		return res.status(400).send("Malformed quaternion.")
 	}
-	console.log(quat)
+	console.log(newQuats)
 	console.log(index)
-	if (index == -1) {
-		quats.push(quat)
-		return res.json(quats[quats.length-1])
-	} else if (index > -1 && index < quats.length) {
-		quats.splice(req.body.index, 0, quat)
-		return res.json(quats[req.body.index])
+	if (index == -1 ) {
+		const len = newQuats.length
+		newQuats.forEach((quat) => {
+			quats.splice(0, 0, quat)
+		})
+		return res.json(quats.slice(0, len))
+	}
+	else if (index == quats.length) {
+		const start = quats.length
+		newQuats.foreach((quat) => {
+			quats.push(quat)
+		})
+		return res.json(quats.slice(start))
+	} else if (index > -1 && index < quats.length-1) {
+		const len = newQuats.length
+		newQuats.forEach((quat, i) => {
+			quats.splice(index+i+1, 0, quat)
+		})
+		return res.json(quats.slice(index, len))
 	} else {
-		return res.status(400).statusMessage("Index out of range.")
+		return res.status(400).send("Index out of range.")
 	}
 })
 

@@ -34,3 +34,12 @@ thead th:last-child {
 .range {
     width: 50px;
 }
+#reference {
+    display: table;
+}
+.cell {
+    display: table-cell;
+}
+#x, #y, #z {
+    width: 40px
+}
