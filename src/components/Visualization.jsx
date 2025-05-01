@@ -22,11 +22,8 @@ class PersistPlot extends React.Component {
         onInitialized={(figure) => {this.setState(figure)}}
         onUpdate={(figure) => {this.setState(figure)}}
         onClick={(e) => {
-          if (this.props.setNewQuat) {
-            const point = new Vector3(e.points[0].x, e.points[0].y, e.points[0].z)
-            const axis = this.props.reference.cross(point).normalize()
-            const angle = point.angle(this.props.reference)
-            this.props.setNewQuat(Quaternion.axisAngle(axis, angle))
+          if (this.props.setPoint) {
+            this.props.setPoint(new Vector3(e.points[0].x, e.points[0].y, e.points[0].z))
           }
         }}
       />
@@ -34,127 +31,260 @@ class PersistPlot extends React.Component {
   }
 }
 
-const Visualization = ({ vertices, selection, slerpN, newQuat, setNewQuat, reference, newRef}) => {
-    const unit_sphere = new Sphere(3)
-    const [polygons, setPolygons] = useState([])
-    const [polVerts, setPolVerts] = useState([])
-    useEffect(() => {
-      const polygons = []
-      const polVerts = [vertices[0], vertices[1]]
-      vertices.forEach((vertex) => {
-        if (vertex.selected) {
-          polVerts.push(vertex)
-          polygons.push(new Polygon(0, 1, polVerts.length-1))
-        }
-        setPolygons(polygons)
-        setPolVerts(polVerts)
-        
-      })}, [vertices]
-    )
-    const new_vertices = [newRef ? newRef : reference];
-    for (var i = 0; i < slerpN; i++) {
-      const slerpQuat = new Quaternion(1,0,0,0).slerp(newQuat, (i+1)/(slerpN+1))
-      new_vertices.push(slerpQuat.rotate(new_vertices[0]))
-    }
-    new_vertices.push(newQuat.rotate(new_vertices[0]))
-    const sphere_data = {
-      type: "mesh3d",
-      x: unit_sphere.sphere_vertices.map((vertex) => vertex.x),
-      y: unit_sphere.sphere_vertices.map((vertex) => vertex.y),
-      z: unit_sphere.sphere_vertices.map((vertex) => vertex.z),
-      i: unit_sphere.sphere_i,
-      j: unit_sphere.sphere_j,
-      k: unit_sphere.sphere_k,
-      color: 'rgb(0,0,255)',
-      opacity: 0.2,
-      flatshading: true,
-      hoverinfo: 'none',
-      hoverongaps: true
-    }
-    const sector_data = {
-      type: "mesh3d",
-      x: polVerts.map((vertex) => vertex.x),
-      y: polVerts.map((vertex) => vertex.y),
-      z: polVerts.map((vertex) => vertex.z),
-      i: polygons.map((polygon) => polygon.v1),
-      j: polygons.map((polygon) => polygon.v2),
-      k: polygons.map((polygon) => polygon.v3),
-      opacity: 0.5,
-      color: 'rgb(255, 132, 0)'
-    }
-    const chained_arc_data = {
-      type: 'scatter3d',
-      mode: 'lines',
-      name: "chained rotations",
-      x: vertices.slice(2,vertices.length).map((vertex) => vertex.x),
-      y: vertices.slice(2,vertices.length).map((vertex) => vertex.y),
-      z: vertices.slice(2,vertices.length).map((vertex) => vertex.z),
-      opacity: 0.5,
-      line: {
-        width: 10,
-        color: 'rgb(255,0,0)',
-      },
-    }
-    const direct_arc_data = {
-      type: 'scatter3d',
-      mode: 'lines',
-      name: "direct rotation",
-      x: polVerts.slice(1, polVerts.length).map((vertex) => vertex.x),
-      y: polVerts.slice(1, polVerts.length).map((vertex) => vertex.y),
-      z: polVerts.slice(1, polVerts.length).map((vertex) => vertex.z),
-      opacity: 0.5,
-      line: {
-        width: 10,
-        color: 'rgb(0,255,0)',
-      },
-    }
-    
-    var data = [sphere_data, sector_data, chained_arc_data, direct_arc_data]
-    if (new_vertices.length > 1) {
-      const new_arc_data = {
-        x: new_vertices.map((vertex) => vertex.x),
-        y: new_vertices.map((vertex) => vertex.y),
-        z: new_vertices.map((vertex) => vertex.z),
-        type: 'scatter3d',
-        mode: 'lines',
-        name: 'new rotation',
-        opacity: 0.5,
-        line: {
-          width: 10,
-          color: 'rgb(255,0,255)',
-        },
+const Visualization = ({ 
+  selection,
+  slerpN,
+  newQuat,
+  reference,
+  newRef,
+  quats,
+  start,
+  selected,
+  setPoint,
+  rotStart,
+  rotEnd,
+  index
+  }) => {
+  const unit_sphere = new Sphere(3)
+  const [vertices, setVertices] = useState([])
+  const [newVertices, setNewVertices] = useState([])
+  const [highlight, setHighlight] = useState(new Vector3(0,0,0))  
+  const origin = {x:new Vector3(0,0,0),y:new Vector3(0,0,0),z:new Vector3(0,0,0)}
+  
+
+  useEffect(() => {
+    const vertices = [ reference ];
+    if (index) {
+      const quat = quats[index]
+      let newVerts = {
+        x: quat.rotate(reference.x),
+        y: quat.rotate(reference.y),
+        z: quat.rotate(reference.z),
       }
-      data.push(new_arc_data)
+      vertices.push(newVerts)
+      
+      setHighlight(newVerts)
+    } else {
+      quats.forEach((quat, index) => {
+        let newVerts = {
+          x: quat.rotate(reference.x),
+          y: quat.rotate(reference.y),
+          z: quat.rotate(reference.z),
+        }
+        vertices.push(newVerts)
+        if (start+index == selected) {
+          setHighlight(newVerts)
+        }
+      });
     }
-    return (
-        <PersistPlot 
-          data={data}
-          layout = {{
-            scene:{
-              aspectmode:"manual",
-              aspectratio:{x:1,y:1,z:1},
-              xaxis: {
-                nticks: 10,
-                range: [-1, 1],
-              },
-              yaxis: {
-                nticks: 10,
-                range: [-1, 1],
-              },
-              zaxis: {
-                nticks: 10,
-                range: [-1, 1],
-              },
-              camera: {
-                eye: {x: 0, y: 2, z: 0}
-              }
+    setVertices(vertices)
+  }, [quats, selected, index])
+
+  useEffect(() => {
+    if (rotStart && rotEnd && index) {
+      const start = new Quaternion(1,0,0,0)
+      const end = newQuat
+      const newVertices = [rotStart]
+      for (var i = 1; i <= slerpN; i++) {
+        const quat = start.slerp(end, i/(slerpN+1))
+        newVertices.push(quat.rotate(rotStart))
+      }
+      newVertices.push(rotEnd)
+      setNewVertices(newVertices)
+    } else {
+      setNewVertices([])
+    }
+  }, [slerpN, newQuat, quats, index])
+
+  useEffect(() => {
+    const polygons = []
+    const polVerts = [vertices[0], vertices[1]]
+    vertices.forEach((vertex) => {
+      if (vertex.selected) {
+        polVerts.push(vertex)
+        polygons.push(new Polygon(0, 1, polVerts.length-1))
+      }
+      //setPolygons(polygons)
+      //setPolVerts(polVerts)
+      
+    })}, [vertices]
+  )
+
+  //unit sphere
+  const sphere_data = {
+    type: "mesh3d",
+    x: unit_sphere.sphere_vertices.map((vertex) => vertex.x),
+    y: unit_sphere.sphere_vertices.map((vertex) => vertex.y),
+    z: unit_sphere.sphere_vertices.map((vertex) => vertex.z),
+    i: unit_sphere.sphere_i,
+    j: unit_sphere.sphere_j,
+    k: unit_sphere.sphere_k,
+    color: 'rgb(0,0,255)',
+    opacity: 0.2,
+    flatshading: true,
+    hoverinfo: 'none',
+    hoverongaps: true
+  }
+
+  //x-axis rotation
+  const x_arc_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "x-rotation",
+    x: vertices.slice(1,vertices.length).map((vertex) => vertex.x.x),
+    y: vertices.slice(1,vertices.length).map((vertex) => vertex.x.y),
+    z: vertices.slice(1,vertices.length).map((vertex) => vertex.x.z),
+    opacity: 0.2,
+    line: {
+      width: 10,
+      color: 'rgb(255,0,0)',
+    },
+  }
+  //x-axis
+  const x_axis_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "x-axis",
+    x: [origin, highlight].map((vertex) => vertex.x.x),
+    y: [origin, highlight].map((vertex) => vertex.x.y),
+    z: [origin, highlight].map((vertex) => vertex.x.z),
+    opacity: 1,
+    line: {
+      width: 10,
+      color: 'rgb(255,0,0)',
+    },
+  }
+
+  //y-axis rotation
+  const y_arc_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "y-rotation",
+    x: vertices.slice(1,vertices.length).map((vertex) => vertex.y.x),
+    y: vertices.slice(1,vertices.length).map((vertex) => vertex.y.y),
+    z: vertices.slice(1,vertices.length).map((vertex) => vertex.y.z),
+    opacity: 0.2,
+    line: {
+      width: 10,
+      color: 'rgb(0,255,0)',
+    },
+  }
+  //y-axis
+  const y_axis_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "y-axis",
+    x: [origin, highlight].map((vertex) => vertex.y.x),
+    y: [origin, highlight].map((vertex) => vertex.y.y),
+    z: [origin, highlight].map((vertex) => vertex.y.z),
+    opacity: 1,
+    line: {
+      width: 10,
+      color: 'rgb(0,255,0)',
+    },
+  }
+
+  //z-axis rotation
+  const z_arc_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "z-rotation",
+    x: vertices.slice(1,vertices.length).map((vertex) => vertex.z.x),
+    y: vertices.slice(1,vertices.length).map((vertex) => vertex.z.y),
+    z: vertices.slice(1,vertices.length).map((vertex) => vertex.z.z),
+    opacity: 0.2,
+    line: {
+      width: 10,
+      color: 'rgb(0,0,255)',
+    },
+  }
+  //z-axis
+  const z_axis_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "z-axis",
+    x: [origin, highlight].map((vertex) => vertex.z.x),
+    y: [origin, highlight].map((vertex) => vertex.z.y),
+    z: [origin, highlight].map((vertex) => vertex.z.z),
+    opacity: 1,
+    line: {
+      width: 10,
+      color: 'rgb(0,0,255)',
+    },
+  }
+
+  const new_arc_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "chained rotations",
+    x: newVertices.map((vertex) => vertex.x),
+    y: newVertices.map((vertex) => vertex.y),
+    z: newVertices.map((vertex) => vertex.z),
+    opacity: 0.5,
+    line: {
+      width: 10,
+      color: 'rgb(255,0,255)',
+    },
+  }
+
+  var data = [
+    sphere_data,
+    x_arc_data,
+    x_axis_data,
+    y_arc_data,
+    y_axis_data,
+    z_arc_data,
+    z_axis_data,
+    new_arc_data
+  ]
+  /*
+  if (new_vertices.length > 1) {
+    const new_arc_data = {
+      x: new_vertices.map((vertex) => vertex.x),
+      y: new_vertices.map((vertex) => vertex.y),
+      z: new_vertices.map((vertex) => vertex.z),
+      type: 'scatter3d',
+      mode: 'lines',
+      name: 'new rotation',
+      opacity: 0.5,
+      line: {
+        width: 10,
+        color: 'rgb(255,0,255)',
+      },
+    }
+    data.push(new_arc_data)
+  }
+    */
+  return (
+      <PersistPlot 
+        data={data}
+        layout = {{
+          scene:{
+            aspectmode:"manual",
+            aspectratio:{x:1,y:1,z:1},
+            xaxis: {
+              nticks: 10,
+              range: [-1, 1],
             },
-            uirevision: "true"
-          }}
-          setNewQuat={selection ? setNewQuat : undefined}
-          reference={new_vertices[0]}
-        />
-      );
+            yaxis: {
+              nticks: 10,
+              range: [-1, 1],
+            },
+            zaxis: {
+              nticks: 10,
+              range: [-1, 1],
+            },
+            camera: {
+              eye: {x: 0, y: 2, z: 0}
+            }
+          },
+          uirevision: "true"
+        }}
+        //reference={new_vertices[0]}
+        setPoint={setPoint[selection]}
+      />
+    );
 };
+
 
 export default Visualization;

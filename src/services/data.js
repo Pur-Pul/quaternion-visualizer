@@ -12,9 +12,18 @@ const getOne = async (index) => {
 }
 
 const post = async (quats, index) => {
-	const response = await axios.post(`${baseUrl}`, {quats, index})
+	const response = await axios.post(`${baseUrl}/quaternion`, {quats, index})
 	return response.data
 }
 
+const reset = async () => {
+	const response = await axios.post(`${baseUrl}/reset`)
+	return response.data
+}
 
-export default { getAll, getOne, post }
+const zero = async () => {
+	const response = await axios.post(`${baseUrl}/zero`)
+	return response.data
+}
+
+export default { getAll, getOne, post, reset, zero }

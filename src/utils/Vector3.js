@@ -43,6 +43,9 @@ class Vector3 {
 		const rad = Math.acos(this.dot(vector) / (this.norm() * vector.norm()))
         return rad * 180 / Math.PI;
 	}
-}
+    dist = (vector) => {
+        return Math.sqrt((this.x - vector.x)**2, (this.y - vector.y)**2, (this.z - vector.z)**2)
+    }
+ }
 
 export default Vector3;

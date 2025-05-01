@@ -53,6 +53,14 @@ class Quaternion extends Vector3 {
     const sinohm = Math.sin(ohm);
     return this.scalar(Math.sin((1 - t) * ohm) / sinohm).add(quat.scalar(Math.sin(t * ohm) / sinohm))
   }
+  mult(quat) {
+    return new Quaternion(
+      this.w*quat.w - this.x*quat.x - this.y*quat.y - this.z*quat.z,
+      this.x*quat.w + this.w*quat.x - this.z*quat.y + this.y*quat.z,
+      this.y*quat.w + this.z*quat.x + this.w*quat.y - this.x*quat.z,
+      this.z*quat.w - this.y*quat.x + this.x*quat.y + this.w*quat.z
+    )
+  }
 }
 
 export default Quaternion;

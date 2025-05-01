@@ -25,6 +25,26 @@ app.get('/api', async (req, res) => {
 	res.json(quats)
 })
 
+
+app.post('/api/zero', async (req, res) => {
+	quats.splice(0, quats.length)
+	quats.push({w:1, x:0, y:0, z:0})
+	res.json(quats)
+})
+
+app.post('/api/reset', async (req, res) => {
+	quats.splice(0, quats.length)
+	for (let row_i = 0; row_i < table.rows.length; row_i++) {
+		quats.push({
+			w: table.get(row_i, 6),
+			x: table.get(row_i, 3),
+			y: table.get(row_i, 4), 
+			z: table.get(row_i, 5)
+		});
+	}
+	res.json(quats)
+})
+
 app.get('/api/:index', async (req, res) => {
 	const index = req.params.index
 	const quat = quats[index]
@@ -35,7 +55,7 @@ app.get('/api/:index', async (req, res) => {
 	}
 })
 
-app.post('/api', async (req, res) => {
+app.post('/api/quaternion', async (req, res) => {
 	const newQuats = []
 	const index = req.body.index
 	console.log(req.body.quats)
@@ -56,7 +76,7 @@ app.post('/api', async (req, res) => {
 	console.log(newQuats)
 	console.log(index)
 	if (index == -1 ) {
-		const len = newQuats.length
+		const len = quats.length + newQuats.length
 		newQuats.forEach((quat) => {
 			quats.splice(0, 0, quat)
 		})
@@ -68,12 +88,13 @@ app.post('/api', async (req, res) => {
 			quats.push(quat)
 		})
 		return res.json(quats.slice(start))
-	} else if (index > -1 && index < quats.length-1) {
+	} else if (index > -1 && index < quats.length) {
+		const start = index+1
 		const len = newQuats.length
 		newQuats.forEach((quat, i) => {
-			quats.splice(index+i+1, 0, quat)
+			quats.splice(start+i, 0, quat)
 		})
-		return res.json(quats.slice(index, len))
+		return res.json(quats.slice(start, start+len))
 	} else {
 		return res.status(400).send("Index out of range.")
 	}

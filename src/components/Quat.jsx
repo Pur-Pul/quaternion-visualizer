@@ -5,7 +5,7 @@ import Vector3 from "../utils/Vector3";
 import QuaternionView from "./QuaternionView";
 import dataService from '../services/data';
 
-const Quat = ({ setVertices }) => {
+const Quat = ({ setIndex }) => {
     let { index } = useParams();
     const [quaternion, setQuaternion] = useState(undefined)
     useEffect(() => {
@@ -15,6 +15,7 @@ const Quat = ({ setVertices }) => {
         }
         if (index!==undefined) {
             fetch()
+            setIndex(index)
         }
     }, [index])
     
@@ -22,7 +23,7 @@ const Quat = ({ setVertices }) => {
         if (quaternion!==undefined) {
             const vertices = [new Vector3(0,0,0), new Vector3(0,0,1), quaternion.rotate(new Vector3(0,0,1))]
             vertices[2].selected=true
-            setVertices(vertices)
+            //setVertices(vertices)
         }
     }, [quaternion])
     if (quaternion===undefined) { return <>loading</> }
