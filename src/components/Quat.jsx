@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import Quaternion from "../utils/Quaternion";
 import Vector3 from "../utils/Vector3";
@@ -8,6 +8,7 @@ import dataService from '../services/data';
 const Quat = ({ setIndex }) => {
     let { index } = useParams();
     const [quaternion, setQuaternion] = useState(undefined)
+    const navigate = useNavigate()
     useEffect(() => {
         const fetch = async () => {
             const data = await dataService.getOne(index)
@@ -28,10 +29,18 @@ const Quat = ({ setIndex }) => {
     }, [quaternion])
     if (quaternion===undefined) { return <>loading</> }
     
+    const handleCancel = () => {
+        navigate("/")
+    }
+
     return (
         <div>
-            <br/>
-            <QuaternionView quaternion={quaternion} index={index}/>
+            <h2>Index {index}</h2>
+            <div>
+                <QuaternionView quaternion={quaternion} index={index}/>
+            </div>
+            <input type="button" value="Go back" onClick={handleCancel}/>
+            <input type="button" value="Insert rotation" onClick={() => navigate(`/insert/${index}`)}/>
         </div>
     )
 }

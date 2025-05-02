@@ -119,6 +119,7 @@ const QuatForm = ({
 
     return (
         <div>
+            <h2>Insert rotation after index {index}</h2>
             <form onSubmit={submitQuatHandler}>
                 <p>
                     <label>Rotation start:</label>

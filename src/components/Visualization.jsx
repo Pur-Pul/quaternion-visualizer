@@ -24,6 +24,7 @@ class PersistPlot extends React.Component {
         onClick={(e) => {
           if (this.props.setPoint) {
             this.props.setPoint(new Vector3(e.points[0].x, e.points[0].y, e.points[0].z))
+            this.props.setSelection(-1)
           }
         }}
       />
@@ -43,7 +44,8 @@ const Visualization = ({
   setPoint,
   rotStart,
   rotEnd,
-  index
+  index,
+  setSelection
   }) => {
   const unit_sphere = new Sphere(3)
   const [vertices, setVertices] = useState([])
@@ -53,7 +55,7 @@ const Visualization = ({
   
 
   useEffect(() => {
-    const vertices = [ reference ];
+    const vertices = [];
     if (index) {
       const quat = quats[index]
       let newVerts = {
@@ -62,7 +64,6 @@ const Visualization = ({
         z: quat.rotate(reference.z),
       }
       vertices.push(newVerts)
-      
       setHighlight(newVerts)
     } else {
       quats.forEach((quat, index) => {
@@ -96,20 +97,6 @@ const Visualization = ({
     }
   }, [slerpN, newQuat, quats, index])
 
-  useEffect(() => {
-    const polygons = []
-    const polVerts = [vertices[0], vertices[1]]
-    vertices.forEach((vertex) => {
-      if (vertex.selected) {
-        polVerts.push(vertex)
-        polygons.push(new Polygon(0, 1, polVerts.length-1))
-      }
-      //setPolygons(polygons)
-      //setPolVerts(polVerts)
-      
-    })}, [vertices]
-  )
-
   //unit sphere
   const sphere_data = {
     type: "mesh3d",
@@ -131,9 +118,9 @@ const Visualization = ({
     type: 'scatter3d',
     mode: 'lines',
     name: "x-rotation",
-    x: vertices.slice(1,vertices.length).map((vertex) => vertex.x.x),
-    y: vertices.slice(1,vertices.length).map((vertex) => vertex.x.y),
-    z: vertices.slice(1,vertices.length).map((vertex) => vertex.x.z),
+    x: vertices.map((vertex) => vertex.x.x),
+    y: vertices.map((vertex) => vertex.x.y),
+    z: vertices.map((vertex) => vertex.x.z),
     opacity: 0.2,
     line: {
       width: 10,
@@ -154,15 +141,27 @@ const Visualization = ({
       color: 'rgb(255,0,0)',
     },
   }
+  //x-sector
+  const x_sector_data = {
+    type: "mesh3d",
+    x: [origin.x.x, reference.x.x, highlight.x.x],
+    y: [origin.x.y, reference.x.y, highlight.x.y],
+    z: [origin.x.z, reference.x.z, highlight.x.z],
+    i: [0],
+    j: [1],
+    k: [2],
+    opacity: 0.2,
+    color: 'rgb(255, 0, 0)'
+  }
 
   //y-axis rotation
   const y_arc_data = {
     type: 'scatter3d',
     mode: 'lines',
     name: "y-rotation",
-    x: vertices.slice(1,vertices.length).map((vertex) => vertex.y.x),
-    y: vertices.slice(1,vertices.length).map((vertex) => vertex.y.y),
-    z: vertices.slice(1,vertices.length).map((vertex) => vertex.y.z),
+    x: vertices.map((vertex) => vertex.y.x),
+    y: vertices.map((vertex) => vertex.y.y),
+    z: vertices.map((vertex) => vertex.y.z),
     opacity: 0.2,
     line: {
       width: 10,
@@ -184,14 +183,27 @@ const Visualization = ({
     },
   }
 
+    //y-sector
+    const y_sector_data = {
+      type: "mesh3d",
+      x: [origin.y.x, reference.y.x, highlight.y.x],
+      y: [origin.y.y, reference.y.y, highlight.y.y],
+      z: [origin.y.z, reference.y.z, highlight.y.z],
+      i: [0],
+      j: [1],
+      k: [2],
+      opacity: 0.2,
+      color: 'rgb(0, 255, 0)'
+    }
+
   //z-axis rotation
   const z_arc_data = {
     type: 'scatter3d',
     mode: 'lines',
     name: "z-rotation",
-    x: vertices.slice(1,vertices.length).map((vertex) => vertex.z.x),
-    y: vertices.slice(1,vertices.length).map((vertex) => vertex.z.y),
-    z: vertices.slice(1,vertices.length).map((vertex) => vertex.z.z),
+    x: vertices.map((vertex) => vertex.z.x),
+    y: vertices.map((vertex) => vertex.z.y),
+    z: vertices.map((vertex) => vertex.z.z),
     opacity: 0.2,
     line: {
       width: 10,
@@ -213,10 +225,23 @@ const Visualization = ({
     },
   }
 
+    //z-sector
+    const z_sector_data = {
+      type: "mesh3d",
+      x: [origin.z.x, reference.z.x, highlight.z.x],
+      y: [origin.z.y, reference.z.y, highlight.z.y],
+      z: [origin.z.z, reference.z.z, highlight.z.z],
+      i: [0],
+      j: [1],
+      k: [2],
+      opacity: 0.2,
+      color: 'rgb(0, 0, 255)'
+    }
+
   const new_arc_data = {
     type: 'scatter3d',
     mode: 'lines',
-    name: "chained rotations",
+    name: "new rotation",
     x: newVertices.map((vertex) => vertex.x),
     y: newVertices.map((vertex) => vertex.y),
     z: newVertices.map((vertex) => vertex.z),
@@ -229,32 +254,21 @@ const Visualization = ({
 
   var data = [
     sphere_data,
-    x_arc_data,
     x_axis_data,
-    y_arc_data,
     y_axis_data,
-    z_arc_data,
-    z_axis_data,
-    new_arc_data
+    z_axis_data
   ]
-  /*
-  if (new_vertices.length > 1) {
-    const new_arc_data = {
-      x: new_vertices.map((vertex) => vertex.x),
-      y: new_vertices.map((vertex) => vertex.y),
-      z: new_vertices.map((vertex) => vertex.z),
-      type: 'scatter3d',
-      mode: 'lines',
-      name: 'new rotation',
-      opacity: 0.5,
-      line: {
-        width: 10,
-        color: 'rgb(255,0,255)',
-      },
-    }
-    data.push(new_arc_data)
+
+  if (index) {
+    data = data.concat([x_sector_data, y_sector_data, z_sector_data])
+  } else {
+    data = data.concat([x_arc_data, y_arc_data, z_arc_data])
   }
-    */
+
+  if (rotStart && rotEnd && new Vector3(0,0,0).dist(rotStart) != 0 && new Vector3(0,0,0).dist(rotEnd) != 0) {
+    data = data.concat([new_arc_data])
+  }
+
   return (
       <PersistPlot 
         data={data}
@@ -280,8 +294,8 @@ const Visualization = ({
           },
           uirevision: "true"
         }}
-        //reference={new_vertices[0]}
         setPoint={setPoint[selection]}
+        setSelection={setSelection}
       />
     );
 };

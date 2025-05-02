@@ -102,6 +102,7 @@ const App = () => {
         rotEnd={rotEnd}
         setPoint={[setRotStart, setRotEnd]}
         index={index}
+        setSelection={setSelection}
       />
       <Routes>
         <Route path="/" element={
@@ -135,7 +136,6 @@ const App = () => {
         } />
         <Route path="/insert/:index" element={
           <div>
-            <h2>Insert rotation</h2>
             <QuatForm
                 newQuat={newQuat}
                 setNewQuat={setNewQuat}
