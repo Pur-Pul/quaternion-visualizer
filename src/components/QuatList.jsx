@@ -1,20 +1,13 @@
 import QuaternionView from "./QuaternionView";
-import Vector3 from "../utils/Vector3";
-import RangeSlider from 'react-range-slider-input';
 import 'react-range-slider-input/dist/style.css';
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate} from "react-router-dom";
 import '../styles/QuatList.css'
-import QuatForm from "./QuatForm";
+
 
 const QuatList = ({
     quaternions,
     range,
-    setRange,
-    dataStart,
-    setDataStart,
-    dataStop,
-    setDataStop,
     setSelected,
     setIndex
     }) => {

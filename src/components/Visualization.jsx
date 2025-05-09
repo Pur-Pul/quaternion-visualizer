@@ -37,7 +37,6 @@ const Visualization = ({
   slerpN,
   newQuat,
   reference,
-  newRef,
   quats,
   start,
   selected,
@@ -52,11 +51,9 @@ const Visualization = ({
   const [newVertices, setNewVertices] = useState([])
   const [highlight, setHighlight] = useState(new Vector3(0,0,0))  
   const origin = {x:new Vector3(0,0,0),y:new Vector3(0,0,0),z:new Vector3(0,0,0)}
-  
-
   useEffect(() => {
     const vertices = [];
-    if (index) {
+    if (index!==null) {
       const quat = quats[index]
       let newVerts = {
         x: quat.rotate(reference.x),
@@ -82,7 +79,7 @@ const Visualization = ({
   }, [quats, selected, index])
 
   useEffect(() => {
-    if (rotStart && rotEnd && index) {
+    if (rotStart && rotEnd && index!==null) {
       const start = new Quaternion(1,0,0,0)
       const end = newQuat
       const newVertices = [rotStart]
@@ -95,7 +92,7 @@ const Visualization = ({
     } else {
       setNewVertices([])
     }
-  }, [slerpN, newQuat, quats, index])
+  }, [slerpN, newQuat, quats, index, rotStart, rotEnd])
 
   //unit sphere
   const sphere_data = {
@@ -259,7 +256,7 @@ const Visualization = ({
     z_axis_data
   ]
 
-  if (index) {
+  if (index!==null) {
     data = data.concat([x_sector_data, y_sector_data, z_sector_data])
   } else {
     data = data.concat([x_arc_data, y_arc_data, z_arc_data])
@@ -268,7 +265,6 @@ const Visualization = ({
   if (rotStart && rotEnd && new Vector3(0,0,0).dist(rotStart) != 0 && new Vector3(0,0,0).dist(rotEnd) != 0) {
     data = data.concat([new_arc_data])
   }
-
   return (
       <PersistPlot 
         data={data}

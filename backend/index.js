@@ -58,7 +58,7 @@ app.get('/api/:index', async (req, res) => {
 app.post('/api/quaternion', async (req, res) => {
 	const newQuats = []
 	const index = req.body.index
-	console.log(req.body.quats)
+	//console.log(req.body.quats)
 	try {
 		req.body.quats.forEach((quat) => {
 			newQuats.push(
@@ -73,8 +73,8 @@ app.post('/api/quaternion', async (req, res) => {
 	} catch {
 		return res.status(400).send("Malformed quaternion.")
 	}
-	console.log(newQuats)
-	console.log(index)
+	//console.log(newQuats)
+	//console.log(index)
 	if (index == -1 ) {
 		const len = quats.length + newQuats.length
 		newQuats.forEach((quat) => {
@@ -94,6 +94,7 @@ app.post('/api/quaternion', async (req, res) => {
 		newQuats.forEach((quat, i) => {
 			quats.splice(start+i, 0, quat)
 		})
+		//console.log(`start:${start}, len:${len}`)
 		return res.json(quats.slice(start, start+len))
 	} else {
 		return res.status(400).send("Index out of range.")

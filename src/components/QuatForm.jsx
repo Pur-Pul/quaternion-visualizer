@@ -12,39 +12,29 @@ const QuatForm = ({
     setSlerpN,
     selection,
     setSelection,
-    reference,
-    setNewRef,
     rotStart,
     setRotStart,
     rotEnd,
     setRotEnd,
     setIndex,
+    index,
     quaternions,
     setQuaternions
     }) => {
     const navigate = useNavigate()
-    const { index } = useParams()
+    const params = useParams()
 
     useEffect(() => {
-        setIndex(index)
-    }, [index])
+        setRotStart(new Vector3(0,0,0))
+        setRotEnd(new Vector3(0,0,0))
+        setNewQuat(new Quaternion())
+        setSlerpN(0)
+    }, [])
 
     useEffect(() => {
-        const updateNewRef = async () => {
-            
-            const result = await dataService.getOne(index);
-            var q = new Quaternion(result.w, result.x, result.y, result.z); 
-                
-            setNewRef({
-                x:q.rotate(reference.x),
-                y:q.rotate(reference.y),
-                z:q.rotate(reference.z)
-            })
-            
-        }  
-        updateNewRef()
-        
-    }, [reference, index])
+        setIndex(Number(index))
+    }, [params.index])
+
     const handleQuat = (e) => {
         switch (e.target.id) {
             case "w":
@@ -70,7 +60,7 @@ const QuatForm = ({
         if (index >= 0) {
             const data = await dataService.getOne(index)
             baseQuat = new Quaternion(data.w, data.x, data.y, data.z)
-            }
+        }
         const newQuats = []
         for (var i = 0; i < slerpN; i++) {
             const quat = new Quaternion(1,0,0,0).slerp(newQuat, (i+1)/(slerpN+1))
@@ -81,6 +71,11 @@ const QuatForm = ({
         console.log(response)
         const new_quats = response.map((quat) => new Quaternion(quat.w, quat.x, quat.y, quat.z))
         setQuaternions(quaternions.slice(0,index+1).concat(new_quats).concat(quaternions.slice(index+1, quaternions.length)))
+
+        setRotStart(new Vector3(0,0,0))
+        setRotEnd(new Vector3(0,0,0))
+        setNewQuat(new Quaternion())
+        setSlerpN(0)
         navigate('/')
     }
 
