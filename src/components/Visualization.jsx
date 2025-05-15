@@ -1,7 +1,7 @@
 import Plot from 'react-plotly.js'
 import Sphere from '../utils/Sphere';
 import { useState, useEffect } from 'react';
-import Polygon from '../utils/Polygon';
+import dataService from '../services/data'
 import React from 'react';
 import Vector3 from '../utils/Vector3';
 import Quaternion from '../utils/Quaternion';
@@ -49,12 +49,12 @@ const Visualization = ({
   const unit_sphere = new Sphere(3)
   const [vertices, setVertices] = useState([])
   const [newVertices, setNewVertices] = useState([])
-  const [highlight, setHighlight] = useState(new Vector3(0,0,0))  
+  const [highlight, setHighlight] = useState(new Vector3(0,0,0))
   const origin = {x:new Vector3(0,0,0),y:new Vector3(0,0,0),z:new Vector3(0,0,0)}
   useEffect(() => {
-    const vertices = [];
-    if (index!==null) {
-      const quat = quats[index]
+    const fetchQuat = async (index) => {
+      const data = await dataService.getOne(index)
+      const quat = new Quaternion(data.w, data.x, data.y, data.z)
       let newVerts = {
         x: quat.rotate(reference.x),
         y: quat.rotate(reference.y),
@@ -62,6 +62,11 @@ const Visualization = ({
       }
       vertices.push(newVerts)
       setHighlight(newVerts)
+    }
+    const vertices = [];
+    if (index!==null) {
+      fetchQuat(index)
+      
     } else {
       quats.forEach((quat, index) => {
         let newVerts = {
@@ -140,6 +145,7 @@ const Visualization = ({
   }
   //x-sector
   const x_sector_data = {
+    name: "y-sector",
     type: "mesh3d",
     x: [origin.x.x, reference.x.x, highlight.x.x],
     y: [origin.x.y, reference.x.y, highlight.x.y],
@@ -153,9 +159,9 @@ const Visualization = ({
 
   //y-axis rotation
   const y_arc_data = {
+    name: "y-rotation",
     type: 'scatter3d',
     mode: 'lines',
-    name: "y-rotation",
     x: vertices.map((vertex) => vertex.y.x),
     y: vertices.map((vertex) => vertex.y.y),
     z: vertices.map((vertex) => vertex.y.z),
@@ -167,9 +173,9 @@ const Visualization = ({
   }
   //y-axis
   const y_axis_data = {
+    name: "y-axis",
     type: 'scatter3d',
     mode: 'lines',
-    name: "y-axis",
     x: [origin, highlight].map((vertex) => vertex.y.x),
     y: [origin, highlight].map((vertex) => vertex.y.y),
     z: [origin, highlight].map((vertex) => vertex.y.z),
@@ -182,6 +188,7 @@ const Visualization = ({
 
     //y-sector
     const y_sector_data = {
+      name: "y-sector",
       type: "mesh3d",
       x: [origin.y.x, reference.y.x, highlight.y.x],
       y: [origin.y.y, reference.y.y, highlight.y.y],
@@ -195,9 +202,9 @@ const Visualization = ({
 
   //z-axis rotation
   const z_arc_data = {
+    name: "z-rotation",
     type: 'scatter3d',
     mode: 'lines',
-    name: "z-rotation",
     x: vertices.map((vertex) => vertex.z.x),
     y: vertices.map((vertex) => vertex.z.y),
     z: vertices.map((vertex) => vertex.z.z),
@@ -209,9 +216,9 @@ const Visualization = ({
   }
   //z-axis
   const z_axis_data = {
+    name: "z-axis",
     type: 'scatter3d',
     mode: 'lines',
-    name: "z-axis",
     x: [origin, highlight].map((vertex) => vertex.z.x),
     y: [origin, highlight].map((vertex) => vertex.z.y),
     z: [origin, highlight].map((vertex) => vertex.z.z),
@@ -222,18 +229,19 @@ const Visualization = ({
     },
   }
 
-    //z-sector
-    const z_sector_data = {
-      type: "mesh3d",
-      x: [origin.z.x, reference.z.x, highlight.z.x],
-      y: [origin.z.y, reference.z.y, highlight.z.y],
-      z: [origin.z.z, reference.z.z, highlight.z.z],
-      i: [0],
-      j: [1],
-      k: [2],
-      opacity: 0.2,
-      color: 'rgb(0, 0, 255)'
-    }
+  //z-sector
+  const z_sector_data = {
+    name: "z-sector",
+    type: "mesh3d",
+    x: [origin.z.x, reference.z.x, highlight.z.x],
+    y: [origin.z.y, reference.z.y, highlight.z.y],
+    z: [origin.z.z, reference.z.z, highlight.z.z],
+    i: [0],
+    j: [1],
+    k: [2],
+    opacity: 0.2,
+    color: 'rgb(0, 0, 255)'
+  }
 
   const new_arc_data = {
     type: 'scatter3d',
@@ -242,10 +250,23 @@ const Visualization = ({
     x: newVertices.map((vertex) => vertex.x),
     y: newVertices.map((vertex) => vertex.y),
     z: newVertices.map((vertex) => vertex.z),
-    opacity: 0.5,
+    opacity: 1,
     line: {
       width: 10,
       color: 'rgb(255,0,255)',
+    },
+  }
+  const rot_axis_data = {
+    type: 'scatter3d',
+    mode: 'lines',
+    name: "rotation axis",
+    x: newQuat ? [-newQuat.getAxis().x, newQuat.getAxis().x] : [],
+    y: newQuat ? [-newQuat.getAxis().y, newQuat.getAxis().y] : [],
+    z: newQuat ? [-newQuat.getAxis().z, newQuat.getAxis().z] : [],
+    opacity: 1,
+    line: {
+      width: 10,
+      color: 'rgb(0,255,255)',
     },
   }
 
@@ -263,7 +284,7 @@ const Visualization = ({
   }
 
   if (rotStart && rotEnd && new Vector3(0,0,0).dist(rotStart) != 0 && new Vector3(0,0,0).dist(rotEnd) != 0) {
-    data = data.concat([new_arc_data])
+    data = data.concat([new_arc_data, rot_axis_data])
   }
   return (
       <PersistPlot 

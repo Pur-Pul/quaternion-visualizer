@@ -61,6 +61,18 @@ class Quaternion extends Vector3 {
       this.z*quat.w - this.y*quat.x + this.x*quat.y + this.w*quat.z
     )
   }
+  getAngle(rad=false) {
+		return Math.acos(this.w) * 2 * (rad ? 1 : 180/Math.PI)
+	}
+  getAxis() {
+    const rad = Math.acos(this.w)
+    if (rad) {
+      return new Vector3(this.x,this.y,this.z).scalar(1/Math.sin(rad))
+    }
+    else {
+      return new Vector3(0,0,0)
+    }
+  }
 }
 
 export default Quaternion;

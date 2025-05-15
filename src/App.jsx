@@ -16,7 +16,6 @@ const App = () => {
   const [newQuat, setNewQuat] = useState(new Quaternion())
   const [slerpN, setSlerpN] = useState(0)
   const [selection, setSelection] = useState(-1)
-  const [reference, setReference] = useState({x:new Vector3(1,0,0),y:new Vector3(0,1,0),z:new Vector3(0,0,1)})
   const [range, setRange] = useState([0,1000])
   const [dataStop, setDataStop] = useState(1000)
   const [dataStart, setDataStart] = useState(0)
@@ -25,6 +24,8 @@ const App = () => {
   const [rotEnd, setRotEnd] = useState(new Vector3(0,0,0))
   const [index, setIndex] = useState(null)
   const [quats, setQuats] = useState([])
+
+  const reference = {x:new Vector3(1,0,0),y:new Vector3(0,1,0),z:new Vector3(0,0,1)}
 
   useEffect(() => {
     if (rotStart && rotEnd && new Vector3(0,0,0).dist(rotStart) != 0 && new Vector3(0,0,0).dist(rotEnd) != 0) {
@@ -37,17 +38,15 @@ const App = () => {
   useEffect(() => {
     const loadQuats = async () => {
       const data = await dataService.getAll()
-      setQuaternions(data.map((quat) => new Quaternion(quat.w, quat.x, quat.y, quat.z)))
+      const quaternions = data.map((quat) => new Quaternion(quat.w, quat.x, quat.y, quat.z))
+      setQuaternions(quaternions)
+      if(quaternions.length == 0) {
+        setQuaternions([new Quaternion(1,0,0,0)])
+      }
+      setDataStop(Math.min(1000, quaternions.length-1))
     }
     loadQuats()
   }, [])
-
-  useEffect(() => {
-    if(quaternions.length == 0) {
-      setQuaternions([new Quaternion(1,0,0,0)])
-    }
-    setDataStop(quaternions.length-1)
-  }, [quaternions])
 
   useEffect(() => {
     setRange([Number(dataStart), Number(dataStop)])
@@ -78,6 +77,7 @@ const App = () => {
           <div>
             <RangeSelector dataStart={dataStart} setDataStart={setDataStart} range={range} setRange={setRange} dataStop={dataStop} setDataStop={setDataStop}/>
             <ControlPanel range={range} setQuaternions={setQuaternions}/>
+            <span>Showing quaternions {range[0]} to {range[1]} of {quaternions.length}</span>
             <div style={{display: "flex"}}>
               <QuatList 
                 quaternions={quats}
