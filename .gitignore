@@ -1,2 +1,6 @@
 node_modules
 dist
+.env
+cloudflared
+cloudflared-credentials.json
+cloudflared-config.yml

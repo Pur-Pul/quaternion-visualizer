@@ -1,0 +1,13 @@
+events {}
+
+http {
+  server {
+    listen 80;
+
+    location / {
+        proxy_pass http://visualiser:${PORT};
+    }
+
+    client_max_body_size 150M;
+  }
+}

@@ -1,0 +1,32 @@
+services:
+  visualiser:
+    build:
+      dockerfile: Dockerfile
+    volumes:
+      - node_modules_visualiser:/usr/src/app/node_modules
+    container_name: visualiser
+    env_file:
+      - .env
+  nginx:
+    image: nginx:1.25
+    volumes:
+      - ./nginx.conf.template:/etc/nginx/nginx.conf.template:ro
+    container_name: reverse-proxy
+    env_file:
+      - .env
+    ports:
+      - 80:80
+    command: /bin/bash -c "envsubst < /etc/nginx/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
+    depends_on:
+      - visualiser
+  cloudflared:
+    image: cloudflare/cloudflared:2025.2.0
+    restart: unless-stopped
+    volumes:
+      - ./cloudflared-config.yml:/cloudflared-config.yml
+      - ./cloudflared-credentials.json:/cloudflared-credentials.json
+    command: tunnel --no-autoupdate --config=/cloudflared-config.yml run
+    depends_on:
+      - nginx
+volumes:
+  node_modules_visualiser:
