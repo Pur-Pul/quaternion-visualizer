@@ -11,7 +11,7 @@ services:
     image: nginx:1.25
     volumes:
       - ./nginx.conf.template:/etc/nginx/nginx.conf.template:ro
-    container_name: reverse-proxy
+    container_name: reverse-proxy-visualiser
     env_file:
       - .env
     ports:
