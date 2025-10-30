@@ -5,8 +5,8 @@ COPY package*.json ./
 RUN npm ci
 
 COPY --chown=node:node . .
+RUN npm run build
 
 USER node
 
-RUN npm run build
 CMD npm start
